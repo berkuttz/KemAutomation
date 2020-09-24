@@ -34,7 +34,7 @@ def get_msg(root_path, singl_mail=False):
         # cut mailbody
         bodystr = body.split(sender)[0]
         bodystr.lower()
-        with open('CutKeyWords.txt') as f:
+        with open(r'C:\Users\d4an\PycharmProjects\KemAutomation\mlmailclassify\CutKeyWords.txt') as f:
             for message_cut_part in f:
                 bodystr = bodystr.split(message_cut_part.lower())[0]
         return bodystr
@@ -172,12 +172,15 @@ def classify_mail(my_mail):
     # print(model.predict_proba(VerfData))
 
     threshold = 0.8
-    predicted_proba = model.predict_proba(VerfData)
-    for probs in predicted_proba:
-        # Iterating over class probabilities
-        for i in range(len(probs)):
-            if probs[i] >= threshold:
-                # We add the class
-                # print('Probability ', probs[i])
-                return model.classes_[i]
-    #return model.predict(VerfData)
+    if len(VerfData) != 0:
+        predicted_proba = model.predict_proba(VerfData)
+        for probs in predicted_proba:
+            # Iterating over class probabilities
+            for i in range(len(probs)):
+                if probs[i] >= threshold:
+                    # We add the class
+                    # print('Probability ', probs[i])
+                    return model.classes_[i]
+    else:
+        return "Trash"
+        #return model.predict(VerfData)
