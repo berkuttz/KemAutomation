@@ -35,7 +35,7 @@ class COOsite:
         button = self.browser.find_element_by_xpath("/html/body/div/div/div/div/form/button/span")
         button.click()
         time.sleep(1)
-        self.browser.quit()
+        # self.browser.quit()
         # self.browser.get('https://vientiasiakirjat.fi/customer/certificates-of-origin/new')
         # time.sleep(1)
 

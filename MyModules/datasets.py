@@ -33,6 +33,8 @@ class Dataset_20200521(ExcelDataset):
             'Plant_with_country' : 'PlantCountry.xlsx',
             'initmails' : 'df.pickle',
             'cleanedmails': 'df2.pickle',
+            'ML_model': 'df_temp.pickle',
+            'Vectorizer': 'df2_temp.pickle',
 
         }
 

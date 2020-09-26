@@ -6,6 +6,7 @@ from datetime import datetime
 from MyModules import utils, datasets
 import os
 
+
 ## imports for ML to EXE
 # import DataPrep2
 # import sklearn.utils._cython_blas
@@ -19,7 +20,9 @@ class MailCategorize:
     def __init__(self):
 
         outlook = Dispatch("Outlook.Application").GetNamespace("MAPI")
+
         folder = outlook.Folders.Item("Shipments Export")
+
         self.inbox = folder.Folders.Item("Inbox")
         self.outbox = folder.Folders.Item("Sent Items")
         self.oldmails = self.loadoldmails()
@@ -79,7 +82,6 @@ class MailCategorize:
                 try:
                     sentitems.append(messeges)
                     if len(sentitems) > 400: break
-                    if len(sentitems) % 100 == 0: print(messeges.ReceivedTime.month)
                 except:
                     continue
             print('sent items were loaded')
@@ -88,41 +90,49 @@ class MailCategorize:
             print("RESTART OUTLOOK")
             SystemExit(0)
 
-    def add_attachment(self, deliveries, path, file):
+    def add_attachment(self, messeges, filename):
         from MyModules import SAP_Class
-        SAP = SAP_Class.VladSAP()
-        deliveries = deliveries[1:]
-        for deliv in deliveries:
-            SAP.open_del_03(deliv)
-            SAP.del_to_inv(change=False, output=False)
-            SAP.add_attachment(path, file)
-        SAP.close_window()
+        path = utils.global_variable().file_path()
 
-    # get most frequent categor
+        for att in messeges.Attachments:
+            if att.FileName[-3:] == 'pdf' or att.FileName[-3:] == 'PDF':
+                att.SaveAsFile(path + att.FileName)
+
+                os.rename(path + att.FileName, path + filename)
+
+                deliveries = re.findall(r'\d+', messeges.Subject)
+                SAP = SAP_Class.VladSAP()
+                for deliv in deliveries:
+                    if deliv.startswith(('202', '83', '85')) and len(deliv) > 7:
+                        SAP.open_del_03(deliv)
+                        SAP.del_to_inv(change=False, output=False)
+                        SAP.add_attachment(path, filename)
+                SAP.close_window()
+                os.remove(str(path) + '\\' + str(filename))
+                break
+
     def getcategor(self, catlist):
+        # get most frequent categor
         if catlist:
             print("Previous meeseges were for: ", catlist)
             catlist = filter(None, catlist)
             c = Counter(catlist)
             return c.most_common(1)[0][0]
 
-    # get all references from
     def getrefnrs(self, reflist):
+        # get all references from
         templist = []
         for nr in reflist:
             if not str(nr).startswith('4') and nr not in templist:
                 templist.append(nr)
         return str(templist)
 
-    # MRN from Rhenus
     def rhenusmrn(self):
-
+        # MRN from Rhenus
         for messeges in self.inbox.Items:
-            #try:
-            lsitofuser = ['Vlad', 'Luiza', 'Martyna']
+            listo_of_users = ['Vlad', 'Luiza', 'Martyna']
             if messeges.UnRead and messeges.SenderName == 'documents@cesped.it' and \
                     messeges.Categories == '' and not messeges.Subject.startswith("_mrn"):
-
                 rhenusref = re.findall(r'\d+', messeges.Subject)
                 foundnr = []
                 for oldmail in self.oldmails:
@@ -137,18 +147,13 @@ class MailCategorize:
                 time.sleep(2)
 
             elif messeges.Subject.startswith("_mrn") and messeges.UnRead and \
-                    messeges.Categories in lsitofuser:
-                    path = utils.global_variable().file_path()
-                    filename = messeges.Subject + ".msg"
-                    # messeges.SaveAs(path= str(path) + '//' + str(filename) + ".msg", type="olMSG")
-                    messeges.SaveAs(str(path) + '\\' + str(filename))
-                    rhenusref = re.findall(r'\d+', messeges.Subject)
-                    self.add_attachment(rhenusref, path, filename)
-                    os.remove(str(path) + '\\' + str(filename))
-                    messeges.Unread = False
-                    messeges.Save()
-            #except:
-                #continue
+                    messeges.Categories in listo_of_users:
+                cleanedSubject = re.sub('[^0-9]', ' ', messeges.Subject)
+                cleanedSubject = cleanedSubject.strip()
+                filename = "_mrn " + cleanedSubject + ".pdf"
+                self.add_attachment(messeges, filename)
+                messeges.Unread = False
+                messeges.Save()
 
     # add categories
     def categorize(self):
@@ -194,6 +199,25 @@ class MailCategorize:
                 # print("Error occurred ", sys.exc_info())
                 continue
 
+    def ML_labels(self):
+        from mlmailclassify import mainML
+        for messeges in self.inbox.Items:
+            if messeges.UnRead and messeges.Categories == "Vlad":
+                if messeges.SenderName not in self.exludedMails:
+                    label = mainML.get_MLpred(messeges)
+                    print(messeges.Subject)
+                    print("***ML think this is", label, '\n')
+                    # if label != "Other" and label is not None:
+                        # print(messeges.Subject)
+                        # print("***ML think this is", label, '\n')
+                    if label == "Final_BL":
+                        cleanedSubject = re.sub('[^0-9]', ' ', messeges.Subject)
+                        cleanedSubject = cleanedSubject.strip()
+                        filename = "_bl " + cleanedSubject + ".pdf"
+                        self.add_attachment(messeges, filename)
+                        # messeges.Unread = False
+                        # messeges.Save()
+
 
 if __name__ == '__main__':
     mailclasss = MailCategorize()
@@ -204,5 +228,7 @@ if __name__ == '__main__':
             mailclasss.loadsentitems()
         for i in range(30):
             mailclasss.rhenusmrn()
+            mailclasss.ML_labels()
             # mailclasss.categorize()
+            print("Coffee break")
             time.sleep(120)
