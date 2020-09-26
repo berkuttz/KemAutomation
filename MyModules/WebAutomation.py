@@ -35,7 +35,7 @@ class COOsite:
         button = self.browser.find_element_by_xpath("/html/body/div/div/div/div/form/button/span")
         button.click()
         time.sleep(1)
-        self.browser.quit()
+        # self.browser.quit()
         # self.browser.get('https://vientiasiakirjat.fi/customer/certificates-of-origin/new')
         # time.sleep(1)
 
@@ -143,10 +143,10 @@ class JenkarPortal:
         # Insert Login and Password to account
 
         username = self.browser.find_element_by_id("fld_userEmail")
-        username.send_keys('shipments.export@kemira.com')
+        username.send_keys('')
 
         userpasword = self.browser.find_element_by_id("fld_userPassword")
-        userpasword.send_keys('K3m1raT3mpPwd')
+        userpasword.send_keys('')
         self.browser.find_element_by_id("fld_submitLogin").click()
         print("Logged in as shipments.export@kemira.com")
         time.sleep(1)
