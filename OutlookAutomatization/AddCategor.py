@@ -91,12 +91,11 @@ class MailCategorize:
             SystemExit(0)
 
     def add_attachment(self, messeges, filename):
-        filename = str(filename).replace("/", " ")
         from MyModules import SAP_Class
         path = utils.global_variable().file_path()
 
         for att in messeges.Attachments:
-            if att.FileName[-3:] == 'pdf':
+            if att.FileName[-3:] == 'pdf' or att.FileName[-3:] == 'PDF':
                 att.SaveAsFile(path + att.FileName)
 
                 os.rename(path + att.FileName, path + filename)
@@ -149,7 +148,9 @@ class MailCategorize:
 
             elif messeges.Subject.startswith("_mrn") and messeges.UnRead and \
                     messeges.Categories in listo_of_users:
-                filename = "_mrn " + messeges.Subject + ".pdf"
+                cleanedSubject = re.sub('[^0-9]', ' ', messeges.Subject)
+                cleanedSubject = cleanedSubject.strip()
+                filename = "_mrn " + cleanedSubject + ".pdf"
                 self.add_attachment(messeges, filename)
                 messeges.Unread = False
                 messeges.Save()
@@ -201,14 +202,18 @@ class MailCategorize:
     def ML_labels(self):
         from mlmailclassify import mainML
         for messeges in self.inbox.Items:
-            if messeges.UnRead:
+            if messeges.UnRead and messeges.Categories == "Vlad":
                 if messeges.SenderName not in self.exludedMails:
                     label = mainML.get_MLpred(messeges)
-                    if label != "Other" and label is not None:
-                        print(messeges.Subject)
-                        print("***ML think this is", label, '\n')
-                    if label == "Final_BL" and messeges.Categories == "Vlad":
-                        filename = "_bl " + messeges.Subject + ".pdf"
+                    print(messeges.Subject)
+                    print("***ML think this is", label, '\n')
+                    # if label != "Other" and label is not None:
+                        # print(messeges.Subject)
+                        # print("***ML think this is", label, '\n')
+                    if label == "Final_BL":
+                        cleanedSubject = re.sub('[^0-9]', ' ', messeges.Subject)
+                        cleanedSubject = cleanedSubject.strip()
+                        filename = "_bl " + cleanedSubject + ".pdf"
                         self.add_attachment(messeges, filename)
                         # messeges.Unread = False
                         # messeges.Save()
