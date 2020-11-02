@@ -53,7 +53,6 @@ def Mbox(title, text, style):
 import win32com.client
 from tkinter import *
 from tkinter.scrolledtext import ScrolledText
-from MyModules import datasets
 
 class COO_automation:
 
