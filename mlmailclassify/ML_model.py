@@ -1,6 +1,5 @@
 import pandas as pd
 
-from xgboost import XGBClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -62,20 +61,10 @@ def teach_model():
         print("Importance of each mail attribute: ")
         for name, score in zip(df.columns, classifier.feature_importances_):
             print(name, score)
-
-        """
-        19.10.2020
-        Subject 0.0007430855817920319
-        SenderName 0.0019085036727180616
-        Body 0.0009630711807898709
-        AttachCount 0.00017254365225670927
-        Label 0.0005817296921305203
-        Total 2.816791305563201e-06
-        """
         # save model
         dataset.write_data_pickle('ML_model', classifier)
 
-    models = [XGBClassifier, GaussianNB, RandomForestClassifier, KNeighborsClassifier, DecisionTreeClassifier]
+    models = [GaussianNB, RandomForestClassifier, KNeighborsClassifier, DecisionTreeClassifier]
     # get trained data
     df = dataset.read_data('cleanlabelcut')
     df['Total'] = df[df.columns[:-1]].apply(

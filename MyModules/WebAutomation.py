@@ -1,8 +1,7 @@
 from MyModules import utils
-import os
-import msedge.selenium_tools
-import shutil
+from selenium import webdriver
 import time
+
 
 class COOsite:
 
@@ -11,30 +10,30 @@ class COOsite:
         self.browser = self.get_edge()
 
     def get_edge(self):
-        options = msedge.selenium_tools.EdgeOptions()
-        options.use_chromium = True
-        if not os.path.isdir("C:\\Users\\" + self.user_id + "\\AppData\\Local\\Microsoft\\Edge\\User Data2"):
-            print("Please, make sure MS Edge is closed")
-            time.sleep(5)
-            shutil.copytree("C:\\Users\\" + self.user_id + "\\AppData\\Local\\Microsoft\\Edge\\User Data",
-                            "C:\\Users\\" + self.user_id + "\\AppData\\Local\\Microsoft\\Edge\\User Data2")
+        # options = FirefoxProfile("C:\\Users\\d4an\\AppData\\Local\\Mozilla\\Firefox\\Profiles")
+        # options.use_chromium = True
+        # if not os.path.isdir("C:\\Users\\" + self.user_id + "\\AppData\\Local\\Microsoft\\Edge\\User Data2"):
+        #     print("Please, make sure MS Edge is closed")
+        #     time.sleep(5)
+        #     shutil.copytree("C:\\Users\\" + self.user_id + "\\AppData\\Local\\Microsoft\\Edge\\User Data",
+        #                     "C:\\Users\\" + self.user_id + "\\AppData\\Local\\Microsoft\\Edge\\User Data2")
 
-        options.add_argument(
-            "user-data-dir=C:\\Users\\" + self.user_id + "\\AppData\\Local\\Microsoft\\Edge\\User Data2")
-        driver = msedge.selenium_tools.Edge(
-            executable_path=("C:\\Users\\" + self.user_id + "\\Downloads\\msedgedriver.exe"),
-            options=options)
+        # options.add_argument(
+        # "user-data-dir=C:\\Users\\" + self.user_id + "\\AppData\\Local\\Microsoft\\Edge\\User Data2")
+        driver = webdriver.Firefox(executable_path="C:\\Users\\" + self.user_id + "\\Kemira Oyj\\BSC CS Export - Documents\\MacroVlad\Python\\COO\\geckodriver.exe")
         driver.maximize_window()
+        # os.remove("geckodriver.log")
         return driver
 
     # login to web site
     def logingtoSIte(self):
-
         self.browser.get('https://vientiasiakirjat.fi/auth/login?lang=en')
+        login, password = utils.COO_automation().get_credentials()
+        self.browser.find_element_by_xpath("/html/body/div/div/div/div/form/div[1]/div/input").send_keys(login)
+        self.browser.find_element_by_xpath("/html/body/div/div/div/div/form/div[2]/div/input").send_keys(password)
         time.sleep(1)
-        button = self.browser.find_element_by_id("login_submit")
-        button.submit()
-        time.sleep(1)
+        self.browser.find_element_by_id("login_submit").click()
+
         self.browser.get('https://vientiasiakirjat.fi/customer/certificates-of-origin/new')
         time.sleep(1)
 
@@ -47,17 +46,7 @@ class COOsite:
 
     # fill 2. Consignee
     def fillConsignee(self, name, address, country):
-        self.browser.find_element_by_xpath('/html/body/div[1]/div/div/div/form/div/div[2]/div[4]/div/div').click()
-        # select Consignee country
-        CntrNr = 0
-        Country = country
-        while CntrNr < 249:
-            xpath = "//*[@id='react-select-4-option-" + str(CntrNr) + "']"
-            if self.browser.find_element_by_xpath(xpath).text == Country:
-                self.browser.find_element_by_xpath(xpath).click()
-                break
-            else:
-                CntrNr += 1
+        time.sleep(1)
 
         ConsigName = self.browser.find_element_by_xpath("//*[@id='consignee']")
         ConsigName.send_keys(name)
@@ -65,22 +54,34 @@ class COOsite:
         ConsigAddress = self.browser.find_element_by_xpath("//*[@id='consigneeAddress']")
         ConsigAddress.send_keys(address)
 
-        if __name__ == "__main__":
-            COOsite()
+        self.browser.execute_script("window.scrollTo(0, window.scrollY + 200)")
+        # self.browser.find_element_by_xpath('/html/body/div[1]/div/div/div/form/div/div[2]/div[4]/div/div').click()
+        # # select Consignee country
+        # CntrNr = 0
+        # Country = country
+        # while CntrNr < 249:
+        #     xpath = "//*[@id='react-select-4-option-" + str(CntrNr) + "']"
+        #     if self.browser.find_element_by_xpath(xpath).text == Country:
+        #         self.browser.find_element_by_xpath(xpath).click()
+        #         break
+        #     else:
+        #         CntrNr += 1
 
     # 3 Country of origin
     def fillCOO(self, country):
+        self.browser.execute_script("window.scrollTo(0, window.scrollY + 200)")
         country = str(country)
-        self.browser.find_element_by_xpath(
-            "/html/body/div[1]/div/div/div/form/div/div[3]/div[2]/div/div/div/div/div/div[1]").click()
+        #self.browser.find_element_by_xpath("/html/body/div[1]/div/div/div/form/div/div[2]/div[4]/div/div/div/div/div").click()
         CntrNr = 1
+
         while CntrNr < 249:
-            xpath = '/html/body/div[1]/div/div/div/form/div/div[2]/div[4]/div/div/div[2]/div/div[' + str(CntrNr) + ']'
-            if self.browser.find_element_by_xpath(xpath).text == "European Union - " + country:
-                self.browser.find_element_by_xpath(xpath).click()
+            if self.browser.find_element_by_id(
+                    "react-select-4-option-" + str(CntrNr)).text == "European Union - " + country:
+                self.browser.find_element_by_id("react-select-5-option-" + str(CntrNr)).click()
                 break
-            elif self.browser.find_element_by_xpath(xpath).text == country:
-                self.browser.find_element_by_xpath(xpath).click()
+            elif self.browser.find_element_by_id(
+                    "react-select-4-option-" + str(CntrNr)).text == country:
+                self.browser.find_element_by_id("react-select-5-option-" + str(CntrNr)).click()
                 break
 
             CntrNr += 1

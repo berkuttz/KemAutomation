@@ -1,18 +1,15 @@
 import pandas as pd
-from numpy import nan
 
-df = pd.read_excel(r'C:\Users\d4an\OneDrive - Kemira Oyj\Desktop\Projects\EMailAnalysis\WaterExports\WaterExpSent.xlsx')
-# df = df.rename(
-#     columns={'Unnamed: 0': 'Subject', 'Unnamed: 1': 'Recieving time', 'Unnamed: 2': 'Sender Name', 'Unnamed: 3': 'Body',
-#              'Unnamed: 4': 'To', 'Unnamed: 5': 'CC', 'Unnamed: 6': 'Categories'})
-a = 'Katarzyna Puzdrowska ; Katarzyna Stachowska; Kornelia Bojanowska ; Luiza; Marlena ; Martyna; Marzena; Nataliia; ' \
-    'Oliwia ; Vladyslav ; '
+df = pd.read_excel(r'C:\Users\d4an\OneDrive - Kemira Oyj\Desktop\TM KU Sent items.xlsm')
+ExcelWithTeam = pd.read_excel(r'C:\Users\d4an\OneDrive - Kemira Oyj\Desktop\TankMonitorTeam.xlsx')
 
-MyCollegues2 = []
-MyCollegues = a.split(';')
+ExcelWithTeam = ExcelWithTeam.dropna()
 
-for Name in MyCollegues:
-    MyCollegues2.append(Name.strip())
+MyCollegues = []
+
+
+for Name in ExcelWithTeam.Person:
+    MyCollegues.append(Name.strip())
 
 MyMatch = bool
 index = 0
@@ -20,13 +17,13 @@ NameList = []
 for massage in df['Body']:
     massage = str(massage)
     # splitMassage = massage.split()
-    for Name2 in MyCollegues2:
+    for Name2 in MyCollegues:
         try:
             if massage.lower().count(Name2.lower()) != 0:
                 MyMatch = True
                 NameList.append(Name2)
                 break
-                # print(index + 1, Name2)
+
         except:
             break
     if not MyMatch:
@@ -42,7 +39,7 @@ df['Categor'] = NameList
 # lengthOfMasg = pd.DataFrame(data=data, index=range(0, len(df)))
 
 
-df = df.to_excel(r'C:\Users\d4an\OneDrive - Kemira Oyj\Desktop\Projects\EMailAnalysis\WaterExports\WaterSentWithCateg.xlsx',
+df = df.to_excel(r'C:\Users\d4an\OneDrive - Kemira Oyj\Desktop\TankMonitorSent.xlsx',
                  index=False)
 
 

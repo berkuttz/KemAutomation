@@ -23,6 +23,7 @@ if __name__ == '__main__':
     SAP = SAP_Class.VladSAP()
     SAP.download_report_ZL06O(variant, layout, file_name)
     SAP.close_window()
+
     # upload report to Web Site
     WEB = WebAutomation.JenkarPortal()
     WEB.logingtoSIte()

@@ -19,7 +19,8 @@ def getNameAddress():
 
 if __name__ == '__main__':
     # open Delivery
-    DelNr = utils.getDelivery()
+    # DelNr = utils.COO_automation().getDelivery()
+    DelNr = "85199975"
     SAP.open_del_03(DelNr)
     # get plant and COO
     plant = SAP.getPlant()
@@ -33,7 +34,7 @@ if __name__ == '__main__':
     COO.logingtoSIte()
     # get Consignee details
     getNameAddress()
-    COO.fillCOO(plantCOO)
+    #COO.fillCOO(plantCOO)
     # Select SEA transport mode
     COO.fillTranportMode()
     for items in range(0, len(goods), 4):
@@ -41,4 +42,3 @@ if __name__ == '__main__':
     COO.fillRemarks(text=(sonr + " / " + DelNr))
     COO.restofclicks()
     utils.COO_automation().uploadInvoice()
-
