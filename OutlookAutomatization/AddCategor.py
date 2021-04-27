@@ -4,11 +4,10 @@ from collections import Counter
 import time
 from datetime import datetime
 from MyModules import utils, datasets
-import os
-
+from OutlookAutomatization import MainAutom
+Oul = MainAutom.OulAutom()
 
 ## imports for ML to EXE
-# import DataPrep2
 # import sklearn.utils._cython_blas
 # import sklearn.neighbors.typedefs
 # import sklearn.neighbors.quad_tree
@@ -81,7 +80,7 @@ class MailCategorize:
             for messeges in senitems:
                 try:
                     sentitems.append(messeges)
-                    if len(sentitems) > 400: break
+                    if len(sentitems) > 500: break
                 except:
                     continue
             print('sent items were loaded')
@@ -89,27 +88,6 @@ class MailCategorize:
         except:
             print("RESTART OUTLOOK")
             SystemExit(0)
-
-    def add_attachment(self, messeges, filename):
-        from MyModules import SAP_Class
-        path = utils.global_variable().file_path()
-
-        for att in messeges.Attachments:
-            if att.FileName[-3:] == 'pdf' or att.FileName[-3:] == 'PDF':
-                att.SaveAsFile(path + att.FileName)
-
-                os.rename(path + att.FileName, path + filename)
-
-                deliveries = re.findall(r'\d+', messeges.Subject)
-                SAP = SAP_Class.VladSAP()
-                for deliv in deliveries:
-                    if deliv.startswith(('202', '83', '85')) and len(deliv) > 7:
-                        SAP.open_del_03(deliv)
-                        SAP.del_to_inv(change=False, output=False)
-                        SAP.add_attachment(path, filename)
-                SAP.close_window()
-                os.remove(str(path) + '\\' + str(filename))
-                break
 
     def getcategor(self, catlist):
         # get most frequent categor
@@ -151,8 +129,8 @@ class MailCategorize:
                 cleanedSubject = re.sub('[^0-9]', ' ', messeges.Subject)
                 cleanedSubject = cleanedSubject.strip()
                 filename = "_mrn " + cleanedSubject + ".pdf"
-                self.add_attachment(messeges, filename)
-                messeges.Unread = False
+                Oul.add_attachment(messeges, filename)
+                messeges.UnRead = False
                 messeges.Save()
 
     # add categories
@@ -202,21 +180,24 @@ class MailCategorize:
     def ML_labels(self):
         from mlmailclassify import mainML
         for messeges in self.inbox.Items:
-            if messeges.UnRead and messeges.Categories == "Vlad":
-                if messeges.SenderName not in self.exludedMails:
-                    label = mainML.get_MLpred(messeges)
-                    print(messeges.Subject)
-                    print("***ML think this is", label, '\n')
-                    # if label != "Other" and label is not None:
-                        # print(messeges.Subject)
-                        # print("***ML think this is", label, '\n')
-                    if label == "Final_BL":
-                        cleanedSubject = re.sub('[^0-9]', ' ', messeges.Subject)
-                        cleanedSubject = cleanedSubject.strip()
-                        filename = "_bl " + cleanedSubject + ".pdf"
-                        self.add_attachment(messeges, filename)
-                        # messeges.Unread = False
-                        # messeges.Save()
+            if messeges.UnRead and messeges.Categories == "Vlad" and \
+                    not str(messeges.Subject).startswith("_bl") and messeges.SenderName not in self.exludedMails:
+
+                label = mainML.mail_predict(messeges)
+                print(messeges.Subject)
+                print("***ML think this is", label, '\n')
+
+                if label == "Final_BL":
+                    temp_result = re.search("20[\d]{7}|83[\d]{6}|(85[\d]{6})", messeges.Subject)
+                    del_nr = temp_result.group(0)
+                    filename = "_bl " + del_nr + ".pdf"
+                    Oul.add_attachment(messeges, filename)
+                    messeges.Subject = "_bl " + str(messeges.Subject)
+                    messeges.Save()
+
+                if label == "Draft_BL" and not messeges.IsMarkedAsTask:
+                    messeges.MarkAsTask(4)
+                    messeges.Save()
 
 
 if __name__ == '__main__':
@@ -229,6 +210,6 @@ if __name__ == '__main__':
         for i in range(30):
             mailclasss.rhenusmrn()
             mailclasss.ML_labels()
-            # mailclasss.categorize()
+            mailclasss.categorize()
             print("Coffee break")
             time.sleep(120)

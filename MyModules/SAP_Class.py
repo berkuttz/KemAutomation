@@ -3,16 +3,42 @@ from MyModules import utils
 import re
 import win32com.client
 
-
 class VladSAP:
     # 1) Connect to SAP
     # 2) Open a new SAP window and connect to it.
     def __init__(self):
         self.SapGui = win32com.client.GetObject("SAPGUI").GetScriptingEngine
         self.sessionID = self.SapConnect()
-        self.session = self.SapGui.FindById("ses[" + str(self.sessionID) + "]")  # do i need this ? :)
+        self.session = self.SapGui.FindById("ses[" + str(self.sessionID) + "]")
 
     def SapConnect(self):
+        listOfOpenSess = self.check_connection()
+        if not listOfOpenSess:
+            utils.Mbox("Error", "Wasn't able connect to the SAP", 0)
+            raise SystemExit(0)
+        session = self.SapGui.FindById("ses[" + str(listOfOpenSess[-1]) + "]")
+        # open new SAP window
+        session.findById("wnd[0]").sendVKey(74)
+        time.sleep(2)
+
+        # Identify ID of new openned window.
+        # Get list of new opened sessions
+        listOfOpenSess2 = []
+        SessionNr = 6
+        for sessionID in range(SessionNr)[::-1]:
+            try:
+                self.SapGui.FindById("ses[" + str(sessionID) + "]")
+                listOfOpenSess2.append(sessionID)
+            except:
+                continue
+        # identify what session was open
+        # by comparing 2 lists(before connection and after)
+        for sessionID in listOfOpenSess2:
+            if sessionID not in listOfOpenSess:
+                print("Connected to SAP")
+                return sessionID
+
+    def check_connection(self):
         SessionNr = 6
         listOfOpenSess = []
 
@@ -24,29 +50,10 @@ class VladSAP:
             except:
                 continue
         listOfOpenSess.sort()
-        # define latest opened session
-        try:
-            session = self.SapGui.FindById("ses[" + str(listOfOpenSess[-1]) + "]")
-        except:
-            utils.Mbox("Error", "Wasn't able connect to the SAP", 0)
-            raise SystemExit(0)
-        # open new SAP window
-        session.findById("wnd[0]").sendVKey(74)
-        time.sleep(2)
-        # Get list of new opened sessions
-        listOfOpenSess2 = []
-        for i in range(SessionNr)[::-1]:
-            try:
-                self.SapGui.FindById("ses[" + str(i) + "]")
-                listOfOpenSess2.append(i)
-            except:
-                continue
-        # identify what session was open
-        # by comparing 2 lists(before connection and after)
-        for i in listOfOpenSess2:
-            if i not in listOfOpenSess:
-                print("Connected to SAP")
-                return i
+        if len(listOfOpenSess) == 0:
+            return False
+        else:
+            return listOfOpenSess
 
     # open transaction
     def open_del_03(self, DelNr):
@@ -308,7 +315,8 @@ class VladSAP:
             utils.Jenkar_automation().handle_popup_foxit(text=file_path)
 
     def get_fake_del(self):
-        self.session.findById("wnd[0]/tbar[0]/okcd").text = "zl06o"
+        print("Entering zl06o")
+        self.session.findById("wnd[0]/tbar[0]/okcd").text = "/nzl06o"
         self.session.findById("wnd[0]").sendVKey(0)
         self.session.findById("wnd[0]/usr/ctxtIT_VBELN-LOW").text = "83616510"
         self.session.findById("wnd[0]/usr/ctxtIT_VBELN-LOW").setFocus()

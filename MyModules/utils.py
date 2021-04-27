@@ -25,13 +25,6 @@ class global_variable:
 
 import codecs
 
-
-# get delviery Nr from C:\temp\COODelNr.txt, created with VBA
-def getDelivery():
-    MyTxtFile = codecs.open(r'C:\temp\COODelNr.txt', 'r', 'utf-16')
-    mylist = MyTxtFile.readlines()
-    return mylist[0]
-
     # pop-up similar to VBA msgbox
 
 
@@ -53,6 +46,7 @@ def Mbox(title, text, style):
 import win32com.client
 from tkinter import *
 from tkinter.scrolledtext import ScrolledText
+
 
 class COO_automation:
 
@@ -91,6 +85,12 @@ class COO_automation:
 
         mainwin.mainloop()
 
+    # get delviery Nr from C:\temp\COODelNr.txt, created with VBA
+    def getDelivery(self):
+        MyTxtFile = codecs.open(r'C:\temp\COODelNr.txt', 'r', 'utf-16')
+        mylist = MyTxtFile.readlines()
+        return mylist[0]
+
     def get_plant_coo(self, plant):
         UserLogin = global_variable().login()
         xlApp = win32com.client.Dispatch("Excel.Application")
@@ -109,6 +109,19 @@ class COO_automation:
                 xlwb.Close(False)
                 return coo
         print("Plant wasn't found")
+    def get_credentials(self):
+        xlwb = self.loadExcel()
+        ws = xlwb.Worksheets('Accounts')
+        xlUp = -4162
+        lastrow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row + 1
+        login, password = "", ""
+        for i in range(1, lastrow):
+            if ws.Cells(i, 1).text == global_variable().login():
+                login = ws.Cells(i, 2).Value
+                password = ws.Cells(i, 3).Value
+        xlwb.Close(False)
+        return login, password
+
 
     def GetSHipTOinfo(self, ShipToNr):
         xlwb = self.loadExcel()

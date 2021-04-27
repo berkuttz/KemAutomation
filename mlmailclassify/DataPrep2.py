@@ -50,10 +50,11 @@ def get_clean_data(root_path, singl_mail=False, save_model=False):
     for folder in os.listdir(root_path):
         messeges = os.listdir(root_path + folder)
         for item in messeges:
-            msg = outlook.OpenSharedItem(root_path + folder + "\\" + item)
             # if i am checking one mail (using model and not preparing data for teaching)
-            if singl_mail: msg = singl_mail
-
+            if singl_mail:
+                msg = singl_mail
+            else:
+                msg = outlook.OpenSharedItem(root_path + folder + "\\" + item)
             # get True if PDF is attached
             pdfbool = False
             for ItemNr in range(1, msg.Attachments.Count + 1):
