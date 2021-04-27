@@ -2,7 +2,7 @@ from MyModules import SAP_Class
 from MyModules import WebAutomation
 from MyModules import utils
 
-#SAP = SAP_Class.VladSAP()
+SAP = SAP_Class.VladSAP()
 
 
 # Get Ship-to from SAP and check if there is some info in the Excel file
@@ -18,17 +18,17 @@ def getNameAddress():
 
 
 if __name__ == '__main__':
-    # # open Delivery
-    # DelNr = utils.getDelivery()
-    # SAP.open_del_03(DelNr)
-    # # get plant and COO
-    # plant = SAP.getPlant()
-    # plantCOO = utils.COO_automation().get_plant_coo(plant)
-    # # get all goods info from SAP
-    # goods = SAP.getGoodsInfo()
-    # # get Sales Order nr
-    # sonr = SAP.getSOnr()
-    # # go to WebSite
+    # open Delivery
+    DelNr = utils.getDelivery()
+    SAP.open_del_03(DelNr)
+    # get plant and COO
+    plant = SAP.getPlant()
+    plantCOO = utils.COO_automation().get_plant_coo(plant)
+    # get all goods info from SAP
+    goods = SAP.getGoodsInfo()
+    # get Sales Order nr
+    sonr = SAP.getSOnr()
+    # go to WebSite
     COO = WebAutomation.COOsite()
     COO.logingtoSIte()
     # get Consignee details

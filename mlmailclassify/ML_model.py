@@ -58,6 +58,20 @@ def teach_model():
         classifier = model()
         classifier.fit(X_train, y_train)
 
+        # display
+        print("Importance of each mail attribute: ")
+        for name, score in zip(df.columns, classifier.feature_importances_):
+            print(name, score)
+
+        """
+        19.10.2020
+        Subject 0.0007430855817920319
+        SenderName 0.0019085036727180616
+        Body 0.0009630711807898709
+        AttachCount 0.00017254365225670927
+        Label 0.0005817296921305203
+        Total 2.816791305563201e-06
+        """
         # save model
         dataset.write_data_pickle('ML_model', classifier)
 
@@ -86,7 +100,6 @@ def teach_model():
 def classify_mail(my_mail, threshold=0.5):
     model = dataset.read_data_pickle('ML_model')
     cv = dataset.read_data_pickle('Vectorizer')
-
     my_mail['Total'] = my_mail[my_mail.columns[:]].apply(
         lambda x: ','.join(x.dropna().astype(str)),
         axis=1)
@@ -97,7 +110,7 @@ def classify_mail(my_mail, threshold=0.5):
     if len(VerfData) != 0:
         predicted_proba = model.predict_proba(VerfData)
         # print probability for each mail type
-        print(zip(predicted_proba, model.classes_))
+        print([i for i in zip(predicted_proba[0], model.classes_)])
         for probs in predicted_proba:
             # Iterating over class probabilities
             for i in range(len(probs)):
